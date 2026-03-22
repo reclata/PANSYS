@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "623410139948",
+    "project_id": "pansys-d431e",
+    "storage_bucket": "pansys-d431e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:623410139948:android:4ac6e28914d67e5dfc5289",
+        "android_client_info": {
+          "package_name": "com.pansys.pansys"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyj7qmiEh4B71QlcsU3FSVTd66i2C0YZk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
