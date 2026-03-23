@@ -36,7 +36,7 @@ class DashboardScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              user != null ? 'Bem-vindo(a), \${user.name}!' : 'Bem-vindo(a)!',
+              user != null ? 'Bem-vindo(a), \${user.name}!' : 'Bem-vindo(a) à Visualização (Mock)!',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 8),
