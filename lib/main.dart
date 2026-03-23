@@ -11,6 +11,10 @@ import 'screens/main_shell.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/employees/employee_list_screen.dart';
 import 'screens/employees/employee_form_screen.dart';
+import 'screens/scales/scales_screen.dart';
+import 'screens/production/production_screen.dart';
+import 'screens/inventory/inventory_screen.dart';
+import 'screens/cash/cash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,6 +74,22 @@ class _PanSysAppState extends State<PanSysApp> {
             GoRoute(
               path: '/employees/new',
               builder: (context, state) => const EmployeeFormScreen(),
+            ),
+            GoRoute(
+              path: '/scales',
+              builder: (context, state) => const ScalesScreen(),
+            ),
+            GoRoute(
+              path: '/production',
+              builder: (context, state) => const ProductionScreen(),
+            ),
+            GoRoute(
+              path: '/inventory',
+              builder: (context, state) => const InventoryScreen(),
+            ),
+            GoRoute(
+              path: '/cash_register',
+              builder: (context, state) => const CashScreen(),
             ),
           ],
         ),
