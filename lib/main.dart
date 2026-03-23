@@ -49,10 +49,17 @@ class _PanSysAppState extends State<PanSysApp> {
     final authProvider = context.read<AuthProvider>();
     
     _router = GoRouter(
-      initialLocation: '/dashboard', // MUDANÇA TEMPORÁRIA PARA PREVIEW
+      initialLocation: '/login', // SEGURANÇA REATIVADA
       refreshListenable: authProvider,
       redirect: (context, state) {
-        // SEGURANÇA DESABILITADA TEMPORARIAMENTE PARA VISUALIZAÇÃO
+        final bool isLoggedIn = authProvider.isAuthenticated;
+        final bool isLoggingIn = state.matchedLocation == '/login';
+        
+        if (authProvider.isLoading) return null;
+
+        if (!isLoggedIn && !isLoggingIn) return '/login';
+        if (isLoggedIn && isLoggingIn) return '/dashboard';
+
         return null;
       },
       routes: [

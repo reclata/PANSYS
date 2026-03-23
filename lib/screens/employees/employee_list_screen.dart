@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EmployeeListScreen extends StatelessWidget {
   const EmployeeListScreen({super.key});
@@ -62,56 +61,81 @@ class EmployeeListScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-            // Tabela/Lista de Funcionários
+            // Tabela/Lista de Funcionários Real time Database
             Expanded(
-              child: ListView.builder(
-                itemCount: 4, // Mock
-                itemBuilder: (context, index) {
-                  return Card(
-                    elevation: 0,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(16),
-                      leading: CircleAvatar(
-                        radius: 28,
-                        backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                        child: Icon(Icons.person_outline_rounded, color: Theme.of(context).colorScheme.primary),
-                      ),
-                      title: Text(
-                        ['André Silva', 'Thabata Souza', 'João Padeiro', 'Maria Caixa'][index],
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 4),
-                          Text(['Administrador', 'Gerente', 'Padeiro Líder', 'Operador de Caixa'][index]),
-                          const SizedBox(height: 8),
-                          // Badges (Etiquetas visuais)
-                          Row(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('employees').snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text('Nenhum funcionário cadastrado ainda.'));
+                  }
+
+                  final docs = snapshot.data!.docs;
+
+                  return ListView.builder(
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      final data = docs[index].data() as Map<String, dynamic>;
+                      final isActive = data['isActive'] ?? false;
+
+                      return Card(
+                        elevation: 0,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(16),
+                          leading: CircleAvatar(
+                            radius: 28,
+                            backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                            child: Icon(Icons.person_outline_rounded, color: Theme.of(context).colorScheme.primary),
+                          ),
+                          title: Text(
+                            data['name'] ?? 'Sem Nome',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _badge(context, ['6x1', '5x1', '12x36', 'Turno Fixo'][index], Colors.blue),
-                              const SizedBox(width: 8),
-                              _badge(context, 'Ativo', Colors.green),
+                              const SizedBox(height: 4),
+                              Text('${data['role'] ?? 'Cargo N/A'} - ${data['sector'] ?? ''}'),
+                              const SizedBox(height: 8),
+                              // Badges (Etiquetas visuais)
+                              Row(
+                                children: [
+                                  _badge(context, data['scaleType'] ?? 'N/A', Colors.blue),
+                                  const SizedBox(width: 8),
+                                  _badge(context, isActive ? 'Ativo' : 'Inativo', isActive ? Colors.green : Colors.red),
+                                ],
+                              )
                             ],
-                          )
-                        ],
-                      ),
-                      trailing: PopupMenuButton<String>(
-                        onSelected: (value) {},
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(value: 'edit', child: Text('Editar')),
-                          const PopupMenuItem(value: 'suspend', child: Text('Suspender')),
-                          const PopupMenuItem(value: 'docs', child: Text('Ver Documentos')),
-                        ],
-                      ),
-                    ),
+                          ),
+                          trailing: PopupMenuButton<String>(
+                            onSelected: (value) {
+                              if (value == 'suspend') {
+                                FirebaseFirestore.instance.collection('employees').doc(docs[index].id).update({'isActive': !isActive});
+                              } else if (value == 'delete') {
+                                FirebaseFirestore.instance.collection('employees').doc(docs[index].id).delete();
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(value: 'edit', child: Text('Editar')),
+                              PopupMenuItem(value: 'suspend', child: Text(isActive ? 'Inativar/Suspender' : 'Reativar')),
+                              const PopupMenuItem(value: 'docs', child: Text('Ver Documentos')),
+                              const PopupMenuItem(value: 'delete', child: Text('Excluir', style: TextStyle(color: Colors.red))),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   );
-                },
+                }
               ),
             ),
           ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EmployeeFormScreen extends StatefulWidget {
   const EmployeeFormScreen({super.key});
@@ -39,13 +40,40 @@ class _EmployeeFormScreenState extends State<EmployeeFormScreen> {
     super.dispose();
   }
 
-  void _saveEmployee() {
+  void _saveEmployee() async {
     if (_formKey.currentState!.validate()) {
-      // Mock Saving logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Colaborador(a) \${_nameCtrl.text} cadastrado(a) com sucesso!'), backgroundColor: Colors.green),
-      );
-      context.pop();
+      showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
+      
+      try {
+        await FirebaseFirestore.instance.collection('employees').add({
+          'name': _nameCtrl.text.trim(),
+          'cpf': _cpfCtrl.text.trim(),
+          'rg': _rgCtrl.text.trim(),
+          'phone': _phoneCtrl.text.trim(),
+          'address': _addressCtrl.text.trim(),
+          'role': _roleCtrl.text.trim(),
+          'sector': _sectorCtrl.text.trim(),
+          'salary': _salaryCtrl.text.trim(),
+          'workLoad': _workLoadCtrl.text.trim(),
+          'contractType': _contractType,
+          'scaleType': _scaleType,
+          'isActive': true,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        
+        if (mounted) {
+          Navigator.pop(context); // Fechar loading
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Colaborador(a) \${_nameCtrl.text} cadastrado(a) com sucesso!'), backgroundColor: Colors.green),
+          );
+          context.pop(); // Voltar pra listagem
+        }
+      } catch (e) {
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao salvar: \$e'), backgroundColor: Colors.red));
+        }
+      }
     }
   }
 
