@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,13 +26,49 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, preencha email e senha.')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
-    // TODO: Implementar Firebase Auth Sign-In aqui
-    // Simulando tempo de rede por enquanto
-    await Future.delayed(const Duration(seconds: 2));
-    if (mounted) {
-      setState(() => _isLoading = false);
-      context.go('/dashboard');
+
+    try {
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.login(email, password);
+      // O redirecionamento é feito de forma automática pelo GoRouter Guard
+    } on FirebaseAuthException catch (e) {
+      String msg = 'Erro ao fazer login.';
+      if (e.code == 'user-not-found')
+        msg = 'Usuário não encontrado no sistema.';
+      else if (e.code == 'wrong-password')
+        msg = 'Sua senha está incorreta.';
+      else if (e.code == 'invalid-email')
+        msg = 'O e-mail digitado é inválido.';
+      else if (e.code == 'invalid-credential')
+        msg = 'Credenciais inválidas. Verifique os dados.';
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro interno do app: \$e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
