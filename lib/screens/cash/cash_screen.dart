@@ -24,7 +24,7 @@ class CashScreen extends StatelessWidget {
             const SizedBox(height: 32),
             Card(
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.withOpacity(0.3))),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey.withValues(alpha: 0.3))),
               child: ListTile(
                 leading: const Icon(Icons.point_of_sale_rounded, size: 40, color: Colors.blueAccent),
                 title: const Text('Operador(a) Atual: Maria (Caixa 1)', style: TextStyle(fontWeight: FontWeight.bold)),

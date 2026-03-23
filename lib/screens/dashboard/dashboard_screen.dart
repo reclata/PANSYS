@@ -157,7 +157,7 @@ class DashboardScreen extends StatelessWidget {
                           case 6: text = const Text('12h', style: style); break;
                           default: text = const Text('', style: style); break;
                         }
-                        return SideTitleWidget(axisSide: meta.axisSide, child: text);
+                        return SideTitleWidget(meta: meta, child: text);
                       },
                     ),
                   ),
