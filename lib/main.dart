@@ -7,17 +7,23 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/main_shell.dart';
 import 'screens/dashboard/dashboard_screen.dart';
+import 'screens/employees/employee_list_screen.dart';
+import 'screens/employees/employee_form_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Inicialização do Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
       child: const PanSysApp(),
     ),
   );
@@ -36,24 +42,18 @@ class _PanSysAppState extends State<PanSysApp> {
   @override
   void initState() {
     super.initState();
-    // Injeta o Router com o RefreshListenable do AuthProvider
     final authProvider = context.read<AuthProvider>();
-
+    
     _router = GoRouter(
       initialLocation: '/login',
       refreshListenable: authProvider,
       redirect: (context, state) {
-        // Redirecionamento de segurança (Guard)
         final bool isLoggedIn = authProvider.isAuthenticated;
         final bool isLoggingIn = state.matchedLocation == '/login';
-
-        // Aguarda a verificação inicial
+        
         if (authProvider.isLoading) return null;
 
-        // Se o usuário não está logado e NÃO está na página de Login -> Envia pra Login
         if (!isLoggedIn && !isLoggingIn) return '/login';
-
-        // Se o usuário já está logado e tenta ir pra tela de Login -> Dashboard
         if (isLoggedIn && isLoggingIn) return '/dashboard';
 
         return null;
@@ -63,9 +63,22 @@ class _PanSysAppState extends State<PanSysApp> {
           path: '/login',
           builder: (context, state) => const LoginScreen(),
         ),
-        GoRoute(
-          path: '/dashboard',
-          builder: (context, state) => const DashboardScreen(),
+        ShellRoute(
+          builder: (context, state, child) => MainShell(child: child),
+          routes: [
+            GoRoute(
+              path: '/dashboard',
+              builder: (context, state) => const DashboardScreen(),
+            ),
+            GoRoute(
+              path: '/employees',
+              builder: (context, state) => const EmployeeListScreen(),
+            ),
+            GoRoute(
+              path: '/employees/new',
+              builder: (context, state) => const EmployeeFormScreen(),
+            ),
+          ],
         ),
       ],
     );
@@ -74,21 +87,20 @@ class _PanSysAppState extends State<PanSysApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'PanSys - Gestão Inteligente',
+      title: 'PanSys',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: const Color(0xFFF8F9FA),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFD97736), // Laranja/Tostado rico
+          seedColor: const Color(0xFFD97736),
           primary: const Color(0xFFD97736),
           secondary: const Color(0xFF2B2D42),
         ),
-        textTheme: GoogleFonts.outfitTextTheme(Theme.of(context).textTheme)
-            .apply(
-              bodyColor: const Color(0xFF2B2D42),
-              displayColor: const Color(0xFF2B2D42),
-            ),
+        textTheme: GoogleFonts.outfitTextTheme(Theme.of(context).textTheme).apply(
+          bodyColor: const Color(0xFF2B2D42),
+          displayColor: const Color(0xFF2B2D42),
+        ),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
@@ -100,11 +112,10 @@ class _PanSysAppState extends State<PanSysApp> {
           primary: const Color(0xFFE58C4F),
           secondary: const Color(0xFFFDE8DF),
         ),
-        textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme)
-            .apply(
-              bodyColor: const Color(0xFFFDE8DF),
-              displayColor: const Color(0xFFFDE8DF),
-            ),
+        textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme).apply(
+          bodyColor: const Color(0xFFFDE8DF),
+          displayColor: const Color(0xFFFDE8DF),
+        ),
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
